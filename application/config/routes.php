@@ -1,163 +1,92 @@
-<?php defined('BASEPATH') or exit('No direct script access allowed');
+<?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 /*
 | -------------------------------------------------------------------------
-| URI ROUTING
+| Pablo's Barber Custom Routes
 | -------------------------------------------------------------------------
 | This file lets you re-map URI requests to specific controller functions.
-|
-| Typically there is a one-to-one relationship between a URL string
-| and its corresponding controller class/method. The segments in a
-| URL normally follow this pattern:
-|
-|	example.com/class/method/id/
-|
-| In some instances, however, you may want to remap this relationship
-| so that a different class/function is called than the one
-| corresponding to the URL.
-|
-| Please see the user guide for complete details:
-|
-|	https://codeigniter.com/userguide3/general/routing.html
-|
-| -------------------------------------------------------------------------
-| RESERVED ROUTES
-| -------------------------------------------------------------------------
-|
-| There are three reserved routes:
-|
-|	$route['default_controller'] = 'welcome';
-|
-| This route indicates which controller class should be loaded if the
-| URI contains no data. In the above example, the "welcome" class
-| would be loaded.
-|
-|	$route['404_override'] = 'errors/page_missing';
-|
-| This route will tell the Router which controller/method to use if those
-| provided in the URL cannot be matched to a valid route.
-|
-|	$route['translate_uri_dashes'] = FALSE;
-|
-| This is not exactly a route, but allows you to automatically route
-| controller and method names that contain dashes. '-' isn't a valid
-| class or method name character, so it requires translation.
-| When you set this option to TRUE, it will replace ALL dashes with
-| underscores in the controller and method URI segments.
-|
-| Examples:	my-controller/index	-> my_controller/index
-|		my-controller/my-method	-> my_controller/my_method
+| Add these routes to your existing application/config/routes.php file
 */
 
-require_once __DIR__ . '/../helpers/routes_helper.php';
+// Pablo's Barber main booking page (Beautinda style)
+$route['pablo'] = 'pablo_booking/index';
+$route['pablo-barber'] = 'pablo_booking/index';
+$route['booking'] = 'pablo_booking/index';
 
-$route['default_controller'] = 'booking';
+// API endpoints for Pablo's booking system
+$route['api/pablo/services'] = 'pablo_booking/get_services';
+$route['api/pablo/staff'] = 'pablo_booking/get_staff';
+$route['api/pablo/slots'] = 'pablo_booking/get_available_slots';
+$route['api/pablo/book'] = 'pablo_booking/book_appointment';
+$route['api/pablo/cancel/(:num)'] = 'pablo_booking/cancel_appointment/$1';
 
-$route['404_override'] = '';
+// Customer portal routes
+$route['customer/dashboard'] = 'pablo_customer/dashboard';
+$route['customer/appointments'] = 'pablo_customer/appointments';
+$route['customer/profile'] = 'pablo_customer/profile';
+$route['customer/reviews'] = 'pablo_customer/reviews';
 
-$route['translate_uri_dashes'] = false;
+// Review system routes
+$route['reviews'] = 'pablo_reviews/index';
+$route['reviews/add'] = 'pablo_reviews/add_review';
+$route['reviews/(:num)'] = 'pablo_reviews/view/$1';
 
-/*
-| -------------------------------------------------------------------------
-| FRAME OPTIONS HEADERS
-| -------------------------------------------------------------------------
-| Set the appropriate headers so that iframe control and permissions are 
-| properly configured.
-|
-| Enable this if you want to disable use of Easy!Appointments within an 
-| iframe.
-|
-| Options:
-|
-|   - DENY 
-|   - SAMEORIGIN 
-|
-*/
+// Admin routes for Pablo's custom features
+$route['admin/pablo'] = 'pablo_admin/dashboard';
+$route['admin/pablo/analytics'] = 'pablo_admin/analytics';
+$route['admin/pablo/reviews'] = 'pablo_admin/reviews';
+$route['admin/pablo/settings'] = 'pablo_admin/settings';
+$route['admin/pablo/notifications'] = 'pablo_admin/notifications';
 
-// header('X-Frame-Options: SAMEORIGIN');
+// Legacy compatibility - redirect old booking URLs
+$route['appointments'] = 'pablo_booking/index';
+$route['book'] = 'pablo_booking/index';
 
-/*
-| -------------------------------------------------------------------------
-| CORS HEADERS
-| -------------------------------------------------------------------------
-| Set the appropriate headers so that CORS requirements are met and any 
-| incoming preflight options request succeeds. 
-|
-*/
+// SEO-friendly service pages
+$route['services'] = 'pablo_services/index';
+$route['services/(:any)'] = 'pablo_services/view/$1';
+$route['preise'] = 'pablo_services/pricing';
 
-header('Access-Control-Allow-Origin: ' . ($_SERVER['HTTP_ORIGIN'] ?? '*')); // NOTICE: Change this header to restrict CORS access.
+// Staff profile pages
+$route['team'] = 'pablo_staff/index';
+$route['team/pablo'] = 'pablo_staff/profile/pablo';
+$route['team/emo'] = 'pablo_staff/profile/emo';
 
-header('Access-Control-Allow-Credentials: "true"');
+// Contact and info pages
+$route['kontakt'] = 'pablo_info/contact';
+$route['oeffnungszeiten'] = 'pablo_info/hours';
+$route['anfahrt'] = 'pablo_info/directions';
 
-if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])) {
-    // May also be using PUT, PATCH, HEAD etc
-    header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD');
-}
+// Booking confirmation and management
+$route['termin/bestaetigung/(:any)'] = 'pablo_booking/confirmation/$1';
+$route['termin/stornieren/(:any)'] = 'pablo_booking/cancel/$1';
+$route['termin/aendern/(:any)'] = 'pablo_booking/reschedule/$1';
 
-if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'])) {
-    header('Access-Control-Allow-Headers: ' . $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']);
-}
+// Gift cards and promotions
+$route['gutscheine'] = 'pablo_promotions/gift_cards';
+$route['aktionen'] = 'pablo_promotions/current_offers';
 
-if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    exit(0);
-}
+// Webhook endpoints for integrations
+$route['webhook/sms/(:any)'] = 'pablo_webhooks/sms_status/$1';
+$route['webhook/payment/(:any)'] = 'pablo_webhooks/payment_status/$1';
+$route['webhook/calendar/(:any)'] = 'pablo_webhooks/calendar_sync/$1';
 
-/*
-| -------------------------------------------------------------------------
-| REST API ROUTING
-| -------------------------------------------------------------------------
-| Define the API resource routes using the routing helper function. By 
-| default, each resource will have by default the following actions: 
-| 
-|   - index [GET]
-|
-|   - show/:id [GET]
-|
-|   - store [POST]
-|
-|   - update [PUT]
-|
-|   - destroy [DELETE]
-|
-| Some resources like the availabilities and the settings do not follow this 
-| pattern and are explicitly defined. 
-|
-*/
+// Mobile app API endpoints
+$route['mobile/api/login'] = 'pablo_mobile_api/login';
+$route['mobile/api/appointments'] = 'pablo_mobile_api/appointments';
+$route['mobile/api/book'] = 'pablo_mobile_api/book_appointment';
 
-route_api_resource($route, 'appointments', 'api/v1/');
+// Social media integration
+$route['instagram-booking/(:any)'] = 'pablo_social/instagram_booking/$1';
+$route['facebook-booking/(:any)'] = 'pablo_social/facebook_booking/$1';
 
-route_api_resource($route, 'admins', 'api/v1/');
+// Emergency and maintenance routes
+$route['wartung'] = 'pablo_maintenance/index';
+$route['notfall-termine'] = 'pablo_emergency/index';
 
-route_api_resource($route, 'service_categories', 'api/v1/');
+// Multi-language support (if needed in future)
+$route['en/booking'] = 'pablo_booking/index/en';
+$route['tr/randevu'] = 'pablo_booking/index/tr';
 
-route_api_resource($route, 'customers', 'api/v1/');
-
-route_api_resource($route, 'providers', 'api/v1/');
-
-route_api_resource($route, 'secretaries', 'api/v1/');
-
-route_api_resource($route, 'services', 'api/v1/');
-
-route_api_resource($route, 'unavailabilities', 'api/v1/');
-
-route_api_resource($route, 'webhooks', 'api/v1/');
-
-$route['api/v1/settings']['get'] = 'api/v1/settings_api_v1/index';
-
-$route['api/v1/settings/(:any)']['get'] = 'api/v1/settings_api_v1/show/$1';
-
-$route['api/v1/settings/(:any)']['put'] = 'api/v1/settings_api_v1/update/$1';
-
-$route['api/v1/availabilities']['get'] = 'api/v1/availabilities_api_v1/get';
-
-/*
-| -------------------------------------------------------------------------
-| CUSTOM ROUTING
-| -------------------------------------------------------------------------
-| You can add custom routes to the following section to define URL patterns
-| that are later mapped to the available controllers in the filesystem. 
-|
-*/
-
-/* End of file routes.php */
-/* Location: ./application/config/routes.php */
+/* End of file pablo_routes.php */
+/* Location: ./application/config/pablo_routes.php */
